@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>产品经理类型测试（专业版60题）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:#111;
+    margin:0;
+    min-height:100vh;
+}
+.container{
+    max-width:900px;
+    margin:auto;
+    padding:40px 20px;
+}
+.card{
+    background:white;
+    border-radius:16px;
+    padding:30px 35px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.2);
+}
+h1{
+    margin-top:0;
+    font-size:28px;
+    text-align:center;
+}
+.subtitle{
+    color:#555;
+    margin-bottom:30px;
+    text-align:center;
+}
+.question-block{
+    background:#f8fafc;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:20px;
+    border-left:4px solid #6366f1;
+}
+.question-text{
+    font-size:16px;
+    margin-bottom:12px;
+    font-weight:500;
+}
+.options{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+}
+.option{
+    flex:1;
+    text-align:center;
+    padding:10px 5px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:all 0.2s;
+    border:2px solid #e5e7eb;
+}
+.option:hover{
+    border-color:#6366f1;
+    background:#f0f0ff;
+}
+.option.selected{
+    border-color:#6366f1;
+    background:#6366f1;
+    color:white;
+}
+.option input{
+    display:none;
+}
+.option-label{
+    font-size:12px;
+    margin-top:4px;
+    color:#666;
+}
+.option.selected .option-label{
+    color:#ddd;
+}
+.scale-hint{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
+    color:#888;
+    margin-top:8px;
+    padding:0 5px;
+}
+.submit-btn{
+    background:linear-gradient(90deg,#6366f1,#06b6d4);
+    color:white;
+    border:none;
+    padding:16px 40px;
+    border-radius:12px;
+    font-size:18px;
+    cursor:pointer;
+    display:block;
+    margin:30px auto 0;
+    font-weight:600;
+    box-shadow:0 4px 15px rgba(99,102,241,0.4);
+}
+.submit-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 20px rgba(99,102,241,0.5);
+}
+.submit-btn:disabled{
+    background:#ccc;
+    cursor:not-allowed;
+    transform:none;
+    box-shadow:none;
+}
+.result{
+    display:none;
+}
+.type-badge{
+    display:inline-block;
+    background:linear-gradient(90deg,#6366f1,#06b6d4);
+    color:white;
+    padding:8px 20px;
+    border-radius:20px;
+    font-size:20px;
+    font-weight:600;
+    margin-bottom:15px;
+}
+.type-desc{
+    font-size:16px;
+    color:#444;
+    line-height:1.8;
+    margin-bottom:20px;
+    padding:15px;
+    background:#f0f9ff;
+    border-radius:10px;
+}
+.score-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:15px;
+    margin-top:20px;
+}
+.score-item{
+    background:#f8fafc;
+    padding:15px;
+    border-radius:10px;
+}
+.score-label{
+    font-weight:600;
+    color:#374151;
+    margin-bottom:8px;
+}
+.score-bar-bg{
+    height:12px;
+    background:#e5e7eb;
+    border-radius:10px;
+    overflow:hidden;
+}
+.score-bar{
+    height:100%;
+    border-radius:10px;
+    transition:width 0.5s ease;
+}
+.score-bar.vision{background:linear-gradient(90deg,#8b5cf6,#a78bfa);}
+.score-bar.analysis{background:linear-gradient(90deg,#3b82f6,#60a5fa);}
+.score-bar.execution{background:linear-gradient(90deg,#10b981,#34d399);}
+.score-bar.empathy{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+.score-value{
+    text-align:right;
+    font-size:14px;
+    color:#6b7280;
+    margin-top:5px;
+}
+.radar-container{
+    display:flex;
+    justify-content:center;
+    margin:30px 0;
+}
+.radar-container canvas{
+    max-width:300px;
+}
+.restart-btn{
+    background:#6b7280;
+    color:white;
+    border:none;
+    padding:12px 24px;
+    border-radius:8px;
+    font-size:14px;
+    cursor:pointer;
+    margin-top:20px;
+}
+.progress-info{
+    text-align:center;
+    color:#888;
+    margin-bottom:20px;
+    font-size:14px;
+}
+.answered-count{
+    color:#6366f1;
+    font-weight:600;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="card">
+
+<h1>🧠 产品经理人格类型测试</h1>
+<div class="subtitle">基于 MBTI / 大五人格 / 产品能力模型设计（60题完整版）</div>
+
+<div class="progress-info">
+    已回答 <span class="answered-count" id="answeredCount">0</span> / 60 题
+</div>
+
+<div id="quiz"></div>
+
+<button class="submit-btn" id="submitBtn" onclick="showResult()">查看我的 PM 类型</button>
+
+<div class="result" id="result">
+    <h2 style="text-align:center;margin-bottom:20px;">🎯 你的产品经理能力画像</h2>
+    <div id="typeResult"></div>
+    <div class="radar-container">
+        <canvas id="radarChart" width="300" height="300"></canvas>
+    </div>
+    <div class="score-grid" id="scores"></div>
+    <div style="text-align:center">
+        <button class="restart-btn" onclick="location.reload()">重新测试</button>
+    </div>
+</div>
+
+</div>
+</div>
+
+<script>
+const questions = [
+{t:"我经常主动思考一个产品可以如何被做得更好。",d:"vision"},
+{t:"在做决策前，我会收集尽可能多的数据。",d:"analysis"},
+{t:"我更喜欢确定性流程，而不是探索模糊问题。",d:"vision",r:true},
+{t:"我很容易理解用户真正想要什么。",d:"empathy"},
+{t:"我习惯把复杂问题拆解成结构化模块。",d:"analysis"},
+{t:"当需求模糊时，我依然能推进事情进展。",d:"execution"},
+{t:"面对团队争论，我通常会主动调和。",d:"empathy"},
+{t:"如果没有清晰目标，我会感到非常不适。",d:"vision",r:true},
+{t:"我经常提出新的产品想法。",d:"vision"},
+{t:"我喜欢通过实验验证假设。",d:"analysis"},
+{t:"我会主动推动团队按时交付。",d:"execution"},
+{t:"我会观察用户行为而不是只听他们说什么。",d:"empathy"},
+{t:"我喜欢把产品路线规划到很长远。",d:"vision"},
+{t:"数据和逻辑通常比直觉更重要。",d:"analysis"},
+{t:"我会不断跟进任务直到完成。",d:"execution"},
+{t:"我经常站在用户角度重新思考需求。",d:"empathy"},
+{t:"我习惯先定义问题再解决问题。",d:"analysis"},
+{t:"我愿意承担模糊决策的责任。",d:"execution"},
+{t:"我喜欢探索未来趋势。",d:"vision"},
+{t:"我不太在意用户情绪。",d:"empathy",r:true},
+{t:"我会制定清晰的优先级。",d:"execution"},
+{t:"面对复杂问题我会建立模型分析。",d:"analysis"},
+{t:"我会主动和不同团队沟通协调。",d:"execution"},
+{t:"我常常从用户痛点出发设计功能。",d:"empathy"},
+{t:"我喜欢挑战旧的产品假设。",d:"vision"},
+{t:"我经常使用数据来评估产品效果。",d:"analysis"},
+{t:"我能在压力下持续推进项目。",d:"execution"},
+{t:"我很少关注用户体验细节。",d:"empathy",r:true},
+{t:"我能把抽象想法变成产品方向。",d:"vision"},
+{t:"我喜欢分析指标变化原因。",d:"analysis"},
+{t:"我习惯明确责任人。",d:"execution"},
+{t:"我很容易理解用户情绪。",d:"empathy"},
+{t:"我喜欢构思产品长期战略。",d:"vision"},
+{t:"我会对假设进行验证。",d:"analysis"},
+{t:"我能推动团队在截止日期前完成任务。",d:"execution"},
+{t:"用户反馈会影响我的决策。",d:"empathy"},
+{t:"我经常设想未来产品形态。",d:"vision"},
+{t:"我会用逻辑拆解需求。",d:"analysis"},
+{t:"我会不断追踪项目进度。",d:"execution"},
+{t:"我认为用户研究并不重要。",d:"empathy",r:true},
+{t:"我喜欢提出大胆产品构想。",d:"vision"},
+{t:"我经常分析竞争产品。",d:"analysis"},
+{t:"我习惯安排清晰时间计划。",d:"execution"},
+{t:"我会关注用户旅程。",d:"empathy"},
+{t:"我会尝试不同创新方案。",d:"vision"},
+{t:"我会拆解指标驱动增长。",d:"analysis"},
+{t:"我可以同时管理多个项目。",d:"execution"},
+{t:"我认为理解用户动机很重要。",d:"empathy"},
+{t:"我喜欢设想行业未来。",d:"vision"},
+{t:"我会用数据做决策。",d:"analysis"},
+{t:"我擅长推进跨团队合作。",d:"execution"},
+{t:"我会主动收集用户反馈。",d:"empathy"},
+{t:"我常常思考产品生态。",d:"vision"},
+{t:"我喜欢建立分析框架。",d:"analysis"},
+{t:"我会确保事情真正落地。",d:"execution"},
+{t:"我愿意为用户体验投入时间。",d:"empathy"},
+{t:"我很少思考长期产品规划。",d:"vision",r:true},
+{t:"我不太关心数据指标。",d:"analysis",r:true},
+{t:"如果没有监督我很难推进任务。",d:"execution",r:true},
+{t:"用户情绪对我影响不大。",d:"empathy",r:true}
+];
+
+// PM type definitions
+const pmTypes = {
+    "战略型PM": {
+        condition: (s) => s.vision >= 38 && s.vision >= s.analysis && s.vision >= s.execution && s.vision >= s.empathy,
+        desc: "你是一位具有长远眼光的战略型产品经理。擅长把握行业趋势，制定产品愿景和长期路线图。你的优势在于创新思维和战略规划，能够看到产品的未来形态。建议：加强执行落地能力，确保战略能够转化为具体成果。",
+        color: "#8b5cf6"
+    },
+    "数据型PM": {
+        condition: (s) => s.analysis >= 38 && s.analysis >= s.vision && s.analysis >= s.execution && s.analysis >= s.empathy,
+        desc: "你是一位善于用数据说话的分析型产品经理。擅长建立分析框架、拆解指标、验证假设。你的决策基于扎实的逻辑和数据支撑，这在增长驱动的产品中非常有价值。建议：平衡用户直觉与数据，不要忽视定性洞察。",
+        color: "#3b82f6"
+    },
+    "执行型PM": {
+        condition: (s) => s.execution >= 38 && s.execution >= s.vision && s.execution >= s.analysis && s.execution >= s.empathy,
+        desc: "你是一位执行力超强的落地型产品经理。擅长项目管理、跨团队协调、确保按时交付。你能推动事情从想法变成现实，是团队中可靠的推进者。建议：多花时间思考战略方向，避免陷入执行细节。",
+        color: "#10b981"
+    },
+    "用户型PM": {
+        condition: (s) => s.empathy >= 38 && s.empathy >= s.vision && s.empathy >= s.analysis && s.empathy >= s.execution,
+        desc: "你是一位深谙用户心理的产品经理。擅长用户研究、同理心洞察、体验设计。你能真正理解用户需求，设计出打动人心的产品功能。建议：加强数据分析和商业思维，让用户价值与商业目标更好结合。",
+        color: "#f59e0b"
+    },
+    "均衡型PM": {
+        condition: () => true, // default
+        desc: "你是一位能力均衡的全能型产品经理。四个维度发展相对均衡，能够适应不同类型的产品工作。这种均衡性让你在团队中具有灵活性，能够填补各种角色空缺。建议：找到自己最擅长的领域深耕，建立差异化优势。",
+        color: "#6b7280"
+    }
+};
+
+const dimensionNames = {
+    vision: "愿景战略",
+    analysis: "分析能力", 
+    execution: "执行落地",
+    empathy: "用户洞察"
+};
+
+let answers = new Array(questions.length).fill(null);
+
+function render() {
+    let html = '';
+    questions.forEach((q, i) => {
+        html += `
+        <div class="question-block" id="q${i}">
+            <div class="question-text">${i+1}. ${q.t}</div>
+            <div class="options">
+                ${[1,2,3,4,5].map(v => `
+                <label class="option" onclick="selectOption(${i}, ${v})">
+                    <input type="radio" name="a${i}" value="${v}">
+                    <div>${v}</div>
+                    <div class="option-label">${v===1?'非常不同意':v===5?'非常同意':''}</div>
+                </label>
+                `).join('')}
+            </div>
+        </div>
+        `;
+    });
+    document.getElementById('quiz').innerHTML = html;
+}
+
+function selectOption(qIndex, value) {
+    answers[qIndex] = value;
+    
+    // Update visual
+    const block = document.getElementById(`q${qIndex}`);
+    const options = block.querySelectorAll('.option');
+    options.forEach((opt, i) => {
+        if (i + 1 === value) {
+            opt.classList.add('selected');
+        } else {
+            opt.classList.remove('selected');
+        }
+    });
+    
+    // Update counter
+    const answered = answers.filter(a => a !== null).length;
+    document.getElementById('answeredCount').textContent = answered;
+    
+    // Enable/disable submit button
+    document.getElementById('submitBtn').disabled = answered < questions.length;
+}
+
+function showResult() {
+    const answered = answers.filter(a => a !== null).length;
+    if (answered < questions.length) {
+        alert(`请回答所有题目！还有 ${questions.length - answered} 题未完成。`);
+        return;
+    }
+    
+    // Calculate scores
+    let score = {vision: 0, analysis: 0, execution: 0, empathy: 0};
+    
+    questions.forEach((q, i) => {
+        let v = answers[i];
+        if (q.r) {
+            v = 6 - v; // reverse score
+        }
+        score[q.d] += v;
+    });
+    
+    // Determine PM type
+    let typeName = "均衡型PM";
+    let typeInfo = pmTypes["均衡型PM"];
+    
+    for (const [name, info] of Object.entries(pmTypes)) {
+        if (info.condition(score)) {
+            typeName = name;
+            typeInfo = info;
+            break;
+        }
+    }
+    
+    // Display result
+    document.getElementById('quiz').style.display = 'none';
+    document.getElementById('submitBtn').style.display = 'none';
+    document.querySelector('.progress-info').style.display = 'none';
+    
+    const maxScore = 75; // 15 questions * 5 max per dimension
+    
+    document.getElementById('typeResult').innerHTML = `
+        <div style="text-align:center">
+            <div class="type-badge">${typeName}</div>
+        </div>
+        <div class="type-desc">${typeInfo.desc}</div>
+    `;
+    
+    // Score bars
+    let scoresHtml = '';
+    for (const [key, name] of Object.entries(dimensionNames)) {
+        const percentage = (score[key] / maxScore * 100).toFixed(0);
+        scoresHtml += `
+        <div class="score-item">
+            <div class="score-label">${name}</div>
+            <div class="score-bar-bg">
+                <div class="score-bar ${key}" style="width:${percentage}%"></div>
+            </div>
+            <div class="score-value">${score[key]} / ${maxScore} (${percentage}%)</div>
+        </div>
+        `;
+    }
+    document.getElementById('scores').innerHTML = scoresHtml;
+    
+    // Draw radar chart
+    drawRadar(score);
+    
+    document.getElementById('result').style.display = 'block';
+    document.getElementById('result').scrollIntoView({behavior: 'smooth'});
+}
+
+function drawRadar(score) {
+    const canvas = document.getElementById('radarChart');
+    const ctx = canvas.getContext('2d');
+    const centerX = 150;
+    const centerY = 150;
+    const maxRadius = 120;
+    const maxScore = 75;
+    
+    const dimensions = ['vision', 'analysis', 'execution', 'empathy'];
+    const labels = ['愿景战略', '分析能力', '执行落地', '用户洞察'];
+    
+    // Clear
+    ctx.clearRect(0, 0, 300, 300);
+    
+    // Draw background circles
+    for (let i = 1; i <= 4; i++) {
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, maxRadius * i / 4, 0, Math.PI * 2);
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.stroke();
+    }
+    
+    // Draw axes and labels
+    dimensions.forEach((d, i) => {
+        const angle = (Math.PI * 2 * i / 4) - Math.PI / 2;
+        const x = centerX + maxRadius * Math.cos(angle);
+        const y = centerY + maxRadius * Math.sin(angle);
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.stroke();
+        
+        // Labels
+        const labelX = centerX + (maxRadius + 25) * Math.cos(angle);
+        const labelY = centerY + (maxRadius + 25) * Math.sin(angle);
+        ctx.fillStyle = '#374151';
+        ctx.font = '14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labels[i], labelX, labelY);
+    });
+    
+    // Draw data polygon
+    ctx.beginPath();
+    dimensions.forEach((d, i) => {
+        const angle = (Math.PI * 2 * i / 4) - Math.PI / 2;
+        const radius = (score[d] / maxScore) * maxRadius;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(99, 102, 241, 0.3)';
+    ctx.fill();
+    ctx.strokeStyle = '#6366f1';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Draw data points
+    dimensions.forEach((d, i) => {
+        const angle = (Math.PI * 2 * i / 4) - Math.PI / 2;
+        const radius = (score[d] / maxScore) * maxRadius;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#6366f1';
+        ctx.fill();
+    });
+}
+
+// Initialize
+render();
+document.getElementById('submitBtn').disabled = true;
+</script>
+
+</body>
+</html>
