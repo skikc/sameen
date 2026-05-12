@@ -237,15 +237,15 @@ const LEVELS = [
       <p>Please test the feature this week and send me your <span class="key">feedback</span> by Friday. If you find any bugs, report them in the #launch channel.</p>
       <p>Thanks,<br>Sarah (Product Manager)</p>
     `,
-    question: '这封邮件的主要目的是什么？',
+    question: '根据邮件内容，Sarah 要求团队在本周五之前做什么？',
     choices: [
-      'A) 通知团队她下周要休假',
-      'B) 分享产品发布的计划安排并要求团队测试和反馈',
-      'C) 抱怨团队工作太慢',
-      'D) 介绍新来的产品经理'
+      'A) 完成 dashboard 功能的全部开发',
+      'B) 测试 dashboard 功能并发送反馈给她',
+      'C) 在 #launch 频道里发布产品上线公告',
+      'D) 写一份每周工作报告'
     ],
     answer: 1,
-    explain: '邮件核心：Sarah 分享了 launch schedule，设了 deadline，要求测试 feature 并给 feedback。这是典型的产品进度同步邮件。B 选项准确概括了这些要点。'
+    explain: '文中明确说："Please test the feature this week and send me your feedback by Friday." B 精准对应。A 错在"完成全部开发"（原文只说 finish before March 15，不是本周五）。C 错在 #launch 是报 bug 用的（report bugs），不是发公告。D 文中未提及。'
   },
   {
     id: 2, title: '森林边缘：社交媒体短文', flavor: '路边的告示牌上贴着一篇英文帖子，读懂它才能继续前进。',
@@ -259,15 +259,15 @@ const LEVELS = [
       <p><span class="key">Ship before you're ready.</span> The first version doesn't need to be <span class="key">perfect</span> — it needs to exist. Once real users touch your product, their <span class="key">feedback</span> will tell you what to fix next. This <span class="key">approach</span> is called "<span class="key">iterating</span>."</p>
       <p>The best product teams <span class="key">ship</span> small changes every week, not big releases every six months. Speed of learning > speed of building. That <span class="key">mindset</span> changes everything.</p>
     `,
-    question: '作者认为产品开发中最重要的原则是什么？',
+    question: '根据文章，作者认为"最好的产品团队"的发布节奏是什么？',
     choices: [
-      'A) 产品上线前要追求完美',
-      'B) 应该先上线再根据用户反馈迭代改进',
-      'C) 每六个月发布一次大版本',
-      'D) 不应该听用户的反馈'
+      'A) 每六个月发布一次大版本更新',
+      'B) 每天发布一个新功能',
+      'C) 每周发布小的改动（small changes every week）',
+      'D) 只在产品完全准备好时才发布'
     ],
-    answer: 1,
-    explain: '核心句：Ship before you\'re ready. 第一版不需要 perfect，用户 feedback 会告诉你该修什么。这是典型的 Lean/Agile 思维——先上线，再 iterate。'
+    answer: 2,
+    explain: '文中直接写了："The best product teams ship small changes every week, not big releases every six months." C 完全对应。A 是文中明确反对的做法。B 和 D 文中均未提及。不读文章没法知道是"every week"还是"every day"。'
   },
   {
     id: 3, title: '洞穴入口：补全咒语', flavor: '古老的石门上刻着残缺的英文段落，填入正确的词才能打开门。',
@@ -280,13 +280,13 @@ const LEVELS = [
       <p>A lot of people set big <span class="key">goals</span>, like "I want to be fluent in English." But big goals can feel overwhelming. A better <span class="key">approach</span> is to focus on <span class="key">tiny</span> daily actions.</p>
       <p>If you read just one English paragraph every day, that small <span class="key">habit</span> will <span class="key">compound</span> over time. The key is <span class="key">consistency</span> — doing a little bit every day — not intensity. One paragraph × 365 days = 365 paragraphs. That's a whole book.</p>
     `,
-    question: '补全三个关键句子（每个空填入一个英文单词）：',
+    question: '补全三个关键句子（每个空填入文中出现的英文单词）：',
     blanks: [
-      { id: 'b1', hint: 'Big goals can feel ____ (adj, 让人不知所措的，10个字母)', answers: ['overwhelming'] },
-      { id: 'b2', hint: 'Focus on ____ daily actions (adj, 微小的，4个字母)', answers: ['tiny'] },
-      { id: 'b3', hint: 'The key is ____ (n, 坚持/持续性，12个字母)', answers: ['consistency'] }
+      { id: 'b1', hint: 'Big goals can feel ____ (中文提示：让人不知所措、压倒性的，从文中找)', answers: ['overwhelming'] },
+      { id: 'b2', hint: 'Focus on ____ daily actions (中文提示：微小的、细小的，从文中找)', answers: ['tiny'] },
+      { id: 'b3', hint: 'The key is ____ (中文提示：坚持、不间断、持续性，从文中找)', answers: ['consistency'] }
     ],
-    explain: '三个词都出现在原文中：overwhelming（压倒性的→让人不知所措）、tiny（微小的）、consistency（坚持/持续性）。注意 compound 的意思是"复利增长"，1段×365天=一本书。'
+    explain: '三个词都在原文中出现过。overwhelming = 让人不知所措的（形容 big goals）；tiny = 微小的（修饰 daily actions）；consistency = 坚持/持续性（文中强调 doing a little bit every day）。你必须回到文章里找到并确认这些词。'
   },
   {
     id: 4, title: '石桥：观点辨析', flavor: '守桥人会问你一个问题——他只想听你对文章观点的真实判断。',
@@ -300,15 +300,15 @@ const LEVELS = [
       <p>However, the same study found that <span class="key">collaboration</span> dropped by 23%. Brainstorming sessions felt harder, spontaneous conversations almost disappeared, and new employees took longer to learn from teammates.</p>
       <p>The researchers concluded that both remote and office work have their strengths. It's not about which one is "better" — it's about understanding the <span class="key">trade-off</span> and choosing the right mode for the right task.</p>
     `,
-    question: '根据研究，远程工作的 trade-off 是什么？',
+    question: '根据文中引用的研究数据，远程工作者的个人效率（productivity）和团队协作（collaboration）分别变化了多少？',
     choices: [
-      'A) 远程工作省了通勤时间但工资变低了',
-      'B) 远程工作者个人效率更高，但团队协作变差了',
-      'C) 远程工作只适合新员工',
-      'D) 办公室工作在所有方面都优于远程工作'
+      'A) 个人效率提升了 23%，团队协作下降了 13%',
+      'B) 个人效率提升了 13%，团队协作下降了 23%',
+      'C) 个人效率和团队协作都提升了约 15%',
+      'D) 文中没有给出具体数字'
     ],
     answer: 1,
-    explain: '研究结论是 trade-off：个人 productivity 提升 13%（好处），但 collaboration 下降 23%（代价）。这不是说谁更好，而是不同模式适合不同任务。B 精准概括了 trade-off。'
+    explain: '文中明确写了两个数字：remote workers were "13% more productive on individual tasks"，但 collaboration "dropped by 23%"。数字在文中出现了两次——第一次在开头，第二次在 However 转折后。A 把两个数字搞反了，是典型的干扰项。'
   },
   {
     id: 5, title: 'BOSS：龙之宝藏', flavor: '💀 巨龙守护着最后的宝藏。综合运用你前面学到的所有技能——阅读、理解、推理。打败它！',
@@ -326,15 +326,15 @@ const LEVELS = [
       <p>Technical debt is like a loan. You borrow speed today, but you pay interest tomorrow — in the form of bugs, slow development, and frustrated engineers. A little debt is fine if you pay it back quickly. But if you keep borrowing without <span class="key">refactoring</span>, the interest grows. Eventually, adding a simple feature takes weeks instead of hours.</p>
       <p>The best teams treat technical debt as a conscious decision, not an accident. They say: "We're taking on debt here because the <span class="key">deadline</span> matters. We'll <span class="key">refactor</span> this in two weeks." And then they actually do it. The worst teams pretend the debt doesn't exist — until the system becomes so fragile that nobody wants to touch it.</p>
     `,
-    question: '作者用"贷款(loan)"来比喻技术债。根据文章，这个比喻的核心含义是什么？',
+    question: '根据文章，当技术债严重积累后，具体会发生什么后果？',
     choices: [
-      'A) 技术债是坏事，永远不应该产生技术债',
-      'B) 技术债像贷款一样——可以借，但必须还，否则利息（bug/慢开发）会越来越重',
-      'C) 技术债只影响新员工',
-      'D) 最好的团队从没有技术债'
+      'A) 代码会自动删除',
+      'B) 加一个简单的功能从几小时变成几周（adding a simple feature takes weeks instead of hours）',
+      'C) 工程师的工资会降低',
+      'D) 公司会被迫裁员'
     ],
     answer: 1,
-    explain: '文章明确说 borrow speed today, pay interest tomorrow。核心不是"永远不借"而是"借了要还"——consciously decide and actually refactor。B 最准确。A 和 D 过于绝对（文章说了 a little debt is fine），C 完全无关。'
+    explain: '文中倒数第二句：Eventually, adding a simple feature takes weeks instead of hours. B 直接对应。A/C/D 文中均未提及。这道题必须回到原文定位技术债的极端后果。'
   }
 ];
 
