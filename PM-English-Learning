@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Quest - 英语闯关</title>
+<style>
+  :root {
+    --bg: #0b0b18;
+    --panel: #15152a;
+    --border: #252545;
+    --gold: #f5c842;
+    --xp: #42c6ff;
+    --danger: #ff5252;
+    --success: #5cdb6e;
+    --text: #b8b8d0;
+    --text-bright: #e8e8f8;
+    --accent: #7c6dff;
+    --accent-glow: rgba(124,109,255,.25);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', 'Noto Sans SC', system-ui, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(124,109,255,.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(66,198,255,.05) 0%, transparent 50%);
+  }
+  .app { width: 100%; max-width: 700px; }
+
+  /* ── Player Bar ── */
+  .player-bar {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px 18px; display: flex; align-items: center; gap: 14px; margin-bottom: 20px;
+  }
+  .avatar-icon {
+    width: 46px; height: 46px; border-radius: 14px;
+    background: linear-gradient(135deg, #5b4dff, #3090ff);
+    display: flex; align-items: center; justify-content: center; font-size: 24px;
+    box-shadow: 0 0 20px rgba(91,77,255,.3);
+  }
+  .stats { flex: 1; }
+  .stats .name { font-weight: 700; color: var(--text-bright); font-size: 14px; }
+  .stats .sub { font-size: 11px; color: #777; margin-top: 2px; }
+  .xp-bar-outer { width: 100%; height: 5px; background: #1e1e38; border-radius: 3px; margin-top: 6px; }
+  .xp-bar-inner { height: 100%; background: linear-gradient(90deg, var(--accent), var(--xp)); border-radius: 3px; transition: width .6s ease; }
+  .stat-cell { text-align: center; min-width: 40px; }
+  .stat-cell .val { font-size: 19px; font-weight: 700; color: var(--text-bright); }
+  .stat-cell .lbl { font-size: 10px; color: #555; letter-spacing: .5px; }
+
+  /* ── World Map ── */
+  .map-title {
+    font-size: 17px; font-weight: 700; color: var(--text-bright); margin-bottom: 6px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .map-sub { font-size: 12px; color: #666; margin-bottom: 20px; }
+
+  .quest-path { position: relative; padding-left: 28px; }
+  .quest-path::before {
+    content: ''; position: absolute; left: 21px; top: 8px; bottom: 8px;
+    width: 2px; background: linear-gradient(to bottom, var(--accent), var(--border));
+    border-radius: 1px;
+  }
+  .quest-node {
+    position: relative; margin-bottom: 14px;
+    display: flex; align-items: center; gap: 14px;
+    cursor: pointer; transition: transform .15s;
+  }
+  .quest-node:hover:not(.locked) { transform: translateX(4px); }
+  .quest-node.locked { opacity: .35; cursor: not-allowed; }
+  .quest-node.completed { opacity: .9; }
+  .quest-node.completed .node-dot { background: var(--success); box-shadow: 0 0 12px rgba(92,219,110,.4); }
+  .node-dot {
+    width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border);
+    background: var(--bg); flex-shrink: 0; z-index: 1;
+    transition: all .3s;
+  }
+  .quest-node:not(.locked):not(.completed) .node-dot { border-color: var(--accent); background: #1a1a40; }
+  .quest-node.boss .node-dot {
+    width: 22px; height: 22px; border-color: var(--danger); background: #2a1010;
+    box-shadow: 0 0 16px rgba(255,82,82,.3);
+  }
+  .quest-node.completed.boss .node-dot { background: var(--success); box-shadow: 0 0 16px rgba(92,219,110,.5); }
+  .quest-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 16px; flex: 1; transition: border-color .2s;
+  }
+  .quest-node:not(.locked):not(.completed):hover .quest-card { border-color: var(--accent); }
+  .quest-node.boss .quest-card { border-color: #3a1515; }
+  .quest-card .q-title { font-size: 14px; font-weight: 700; color: var(--text-bright); }
+  .quest-card .q-desc { font-size: 12px; color: #777; margin-top: 3px; }
+  .quest-tag {
+    font-size: 10px; padding: 3px 10px; border-radius: 20px; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .tag-easy { background: rgba(92,219,110,.12); color: var(--success); }
+  .tag-medium { background: rgba(245,200,66,.12); color: var(--gold); }
+  .tag-boss { background: rgba(255,82,82,.15); color: var(--danger); }
+  .quest-done { font-size: 20px; flex-shrink: 0; }
+
+  /* ── Level Play ── */
+  .back-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .back-btn {
+    background: none; border: 1px solid var(--border); color: var(--text);
+    padding: 7px 14px; border-radius: 8px; cursor: pointer; font-size: 13px;
+    transition: all .15s; font-family: inherit;
+  }
+  .back-btn:hover { border-color: var(--accent); color: #fff; }
+  .level-badge { font-size: 12px; color: #888; font-weight: 600; }
+
+  .quest-panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px; margin-bottom: 14px;
+  }
+  .quest-panel.boss-panel { border-color: #4a2020; background: linear-gradient(160deg, #15152a 0%, #1a1018 100%); }
+  .quest-panel .q-header { font-size: 18px; font-weight: 700; color: var(--text-bright); margin-bottom: 2px; }
+  .quest-panel .q-flavor { font-size: 12px; color: #777; font-style: italic; margin-bottom: 12px; }
+
+  .vocab-box {
+    background: rgba(124,109,255,.06); border: 1px solid rgba(124,109,255,.15);
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px;
+  }
+  .vocab-box .v-item { font-size: 12px; }
+  .vocab-box .v-en { color: var(--text-bright); font-weight: 600; }
+  .vocab-box .v-zh { color: #888; margin-left: 6px; }
+
+  .read-card {
+    background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; margin-bottom: 14px;
+  }
+  .read-card .r-label { font-size: 10px; letter-spacing: 2px; color: #555; margin-bottom: 10px; text-transform: uppercase; }
+  .read-card .r-text { font-size: 14px; line-height: 1.9; color: #ccc; }
+  .read-card .r-text p { margin-bottom: 10px; }
+  .read-card .r-text .key { color: var(--gold); font-weight: 600; }
+
+  .challenge-box {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px; margin-bottom: 14px;
+  }
+  .challenge-box .c-prompt { font-size: 14px; font-weight: 600; color: var(--text-bright); margin-bottom: 12px; }
+
+  .choice-list { display: flex; flex-direction: column; gap: 8px; }
+  .choice-btn {
+    background: #181830; border: 2px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; cursor: pointer; font-size: 14px; color: var(--text);
+    text-align: left; transition: all .15s; font-family: inherit;
+  }
+  .choice-btn:hover { border-color: var(--accent); background: #1e1e3a; }
+  .choice-btn.picked { border-color: var(--accent); background: rgba(124,109,255,.12); }
+  .choice-btn.right { border-color: var(--success) !important; background: rgba(92,219,110,.1) !important; color: var(--success); }
+  .choice-btn.wrong { border-color: var(--danger) !important; background: rgba(255,82,82,.08) !important; color: var(--danger); }
+
+  .fill-input {
+    width: 100%; background: #181830; border: 2px solid var(--border); border-radius: 10px;
+    padding: 10px 14px; font-size: 14px; color: var(--text-bright); font-family: inherit;
+    transition: all .15s;
+  }
+  .fill-input:focus { outline: none; border-color: var(--accent); }
+  .fill-input.correct { border-color: var(--success); background: rgba(92,219,110,.06); }
+  .fill-input.wrong { border-color: var(--danger); background: rgba(255,82,82,.06); }
+  .fill-hint { font-size: 11px; color: #666; margin-bottom: 4px; margin-top: 10px; }
+  .fill-hint span { color: var(--gold); }
+
+  .btn {
+    padding: 11px 24px; border-radius: 10px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 700; transition: all .15s; font-family: inherit;
+  }
+  .btn-go { background: var(--accent); color: #fff; width: 100%; }
+  .btn-go:hover:not(:disabled) { background: #6a58f7; }
+  .btn-go:disabled { opacity: .35; cursor: not-allowed; }
+  .btn-next { background: var(--success); color: #0a0a0a; width: 100%; font-size: 15px; padding: 13px 24px; }
+  .btn-next:hover { background: #4ccd5e; transform: translateY(-1px); }
+  .btn-retry { background: #2a2a3a; color: var(--text); }
+  .btn-map { background: none; border: 1px solid var(--border); color: var(--text); }
+
+  .result-box {
+    padding: 16px 18px; border-radius: 12px; margin-top: 14px; display: none;
+    font-size: 14px; line-height: 1.7;
+  }
+  .result-box.show { display: block; }
+  .result-box.win { background: rgba(92,219,110,.08); border: 1px solid var(--success); }
+  .result-box.lose { background: rgba(255,82,82,.08); border: 1px solid var(--danger); }
+  .result-box .r-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .result-box .r-xp { margin-top: 8px; font-weight: 700; color: var(--xp); }
+
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-row .btn { flex: 1; }
+
+  .toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    padding: 13px 26px; border-radius: 12px; font-weight: 700; font-size: 15px;
+    z-index: 999; pointer-events: none; white-space: nowrap;
+    animation: toastIn .4s ease, toastOut .4s ease 2s forwards;
+  }
+  .toast.clear { background: rgba(92,219,110,.15); border: 1px solid var(--success); color: var(--success); }
+  .toast.lvlup { background: rgba(124,109,255,.15); border: 1px solid var(--accent); color: var(--accent); }
+  @keyframes toastIn { from { opacity: 0; top: -40px; } to { opacity: 1; top: 20px; } }
+  @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ===== GAME STATE =====
+const KEY = 'engquest_v2';
+function load() { try { const d = localStorage.getItem(KEY); return d ? JSON.parse(d) : null; } catch { return null; } }
+function def() { return { xp: 0, level: 1, cleared: [], attempts: {} }; }
+let G = load() || def();
+function save() { localStorage.setItem(KEY, JSON.stringify(G)); }
+
+function toast(msg, cls) {
+  const e = document.createElement('div');
+  e.className = 'toast ' + cls; e.textContent = msg;
+  document.body.appendChild(e);
+  setTimeout(() => e.remove(), 2600);
+}
+
+// ===== LEVEL DATA =====
+const LEVELS = [
+  {
+    id: 1, title: '新手村：一封邮件', flavor: '村长交给你一封英文邮件，你能看懂它的主要意思吗？',
+    difficulty: 'easy', xp: 20,
+    vocab: [
+      ['schedule', '安排、日程'], ['deadline', '截止日期'], ['feature', '功能、特性'],
+      ['launch', '发布、上线'], ['feedback', '反馈'], ['tentative', '暂定的']
+    ],
+    reading: `
+      <p>Hi Team,</p>
+      <p>I want to share the <span class="key">schedule</span> for our next product <span class="key">launch</span>. The <span class="key">tentative</span> <span class="key">deadline</span> is March 15. Before that, we need to finish the main <span class="key">feature</span> — a dashboard where users can see their weekly report.</p>
+      <p>Please test the feature this week and send me your <span class="key">feedback</span> by Friday. If you find any bugs, report them in the #launch channel.</p>
+      <p>Thanks,<br>Sarah (Product Manager)</p>
+    `,
+    question: '这封邮件的主要目的是什么？',
+    choices: [
+      'A) 通知团队她下周要休假',
+      'B) 分享产品发布的计划安排并要求团队测试和反馈',
+      'C) 抱怨团队工作太慢',
+      'D) 介绍新来的产品经理'
+    ],
+    answer: 1,
+    explain: '邮件核心：Sarah 分享了 launch schedule，设了 deadline，要求测试 feature 并给 feedback。这是典型的产品进度同步邮件。B 选项准确概括了这些要点。'
+  },
+  {
+    id: 2, title: '森林边缘：社交媒体短文', flavor: '路边的告示牌上贴着一篇英文帖子，读懂它才能继续前进。',
+    difficulty: 'easy', xp: 20,
+    vocab: [
+      ['shipping', '发布、交付'], ['iterate', '迭代、反复改进'], ['perfect', '完美的'],
+      ['feedback', '反馈'], ['mindset', '心态、思维模式'], ['approach', '方法、途径']
+    ],
+    reading: `
+      <p>I've been building products for 10 years, and here's the most important lesson I've learned:</p>
+      <p><span class="key">Ship before you're ready.</span> The first version doesn't need to be <span class="key">perfect</span> — it needs to exist. Once real users touch your product, their <span class="key">feedback</span> will tell you what to fix next. This <span class="key">approach</span> is called "<span class="key">iterating</span>."</p>
+      <p>The best product teams <span class="key">ship</span> small changes every week, not big releases every six months. Speed of learning > speed of building. That <span class="key">mindset</span> changes everything.</p>
+    `,
+    question: '作者认为产品开发中最重要的原则是什么？',
+    choices: [
+      'A) 产品上线前要追求完美',
+      'B) 应该先上线再根据用户反馈迭代改进',
+      'C) 每六个月发布一次大版本',
+      'D) 不应该听用户的反馈'
+    ],
+    answer: 1,
+    explain: '核心句：Ship before you\'re ready. 第一版不需要 perfect，用户 feedback 会告诉你该修什么。这是典型的 Lean/Agile 思维——先上线，再 iterate。'
+  },
+  {
+    id: 3, title: '洞穴入口：补全咒语', flavor: '古老的石门上刻着残缺的英文段落，填入正确的词才能打开门。',
+    difficulty: 'medium', xp: 30,
+    vocab: [
+      ['habit', '习惯'], ['consistency', '坚持、一致性'], ['improvement', '进步、改善'],
+      ['goal', '目标'], ['tiny', '微小的'], ['compound', '复利、累积']
+    ],
+    reading: `
+      <p>A lot of people set big <span class="key">goals</span>, like "I want to be fluent in English." But big goals can feel overwhelming. A better <span class="key">approach</span> is to focus on <span class="key">tiny</span> daily actions.</p>
+      <p>If you read just one English paragraph every day, that small <span class="key">habit</span> will <span class="key">compound</span> over time. The key is <span class="key">consistency</span> — doing a little bit every day — not intensity. One paragraph × 365 days = 365 paragraphs. That's a whole book.</p>
+    `,
+    question: '补全三个关键句子（每个空填入一个英文单词）：',
+    blanks: [
+      { id: 'b1', hint: 'Big goals can feel ____ (adj, 让人不知所措的，10个字母)', answers: ['overwhelming'] },
+      { id: 'b2', hint: 'Focus on ____ daily actions (adj, 微小的，4个字母)', answers: ['tiny'] },
+      { id: 'b3', hint: 'The key is ____ (n, 坚持/持续性，12个字母)', answers: ['consistency'] }
+    ],
+    explain: '三个词都出现在原文中：overwhelming（压倒性的→让人不知所措）、tiny（微小的）、consistency（坚持/持续性）。注意 compound 的意思是"复利增长"，1段×365天=一本书。'
+  },
+  {
+    id: 4, title: '石桥：观点辨析', flavor: '守桥人会问你一个问题——他只想听你对文章观点的真实判断。',
+    difficulty: 'medium', xp: 30,
+    vocab: [
+      ['remote work', '远程工作'], ['productivity', '生产力、效率'], ['commute', '通勤'],
+      ['flexibility', '灵活性'], ['collaboration', '协作'], ['trade-off', '取舍、权衡']
+    ],
+    reading: `
+      <p>A recent study compared <span class="key">productivity</span> between <span class="key">remote work</span> and office work. The results were surprising: remote workers were 13% more productive on individual tasks — they got more done in less time, saved their <span class="key">commute</span> time, and enjoyed more <span class="key">flexibility</span>.</p>
+      <p>However, the same study found that <span class="key">collaboration</span> dropped by 23%. Brainstorming sessions felt harder, spontaneous conversations almost disappeared, and new employees took longer to learn from teammates.</p>
+      <p>The researchers concluded that both remote and office work have their strengths. It's not about which one is "better" — it's about understanding the <span class="key">trade-off</span> and choosing the right mode for the right task.</p>
+    `,
+    question: '根据研究，远程工作的 trade-off 是什么？',
+    choices: [
+      'A) 远程工作省了通勤时间但工资变低了',
+      'B) 远程工作者个人效率更高，但团队协作变差了',
+      'C) 远程工作只适合新员工',
+      'D) 办公室工作在所有方面都优于远程工作'
+    ],
+    answer: 1,
+    explain: '研究结论是 trade-off：个人 productivity 提升 13%（好处），但 collaboration 下降 23%（代价）。这不是说谁更好，而是不同模式适合不同任务。B 精准概括了 trade-off。'
+  },
+  {
+    id: 5, title: 'BOSS：龙之宝藏', flavor: '💀 巨龙守护着最后的宝藏。综合运用你前面学到的所有技能——阅读、理解、推理。打败它！',
+    difficulty: 'boss', xp: 50,
+    vocab: [
+      ['technical debt', '技术债（为快速开发而牺牲代码质量，后续需要花时间修复）'],
+      ['refactor', '重构（重写代码使其更清晰但不改变功能）'],
+      ['deadline', '截止日期'],
+      ['trade-off', '权衡取舍'],
+      ['approach', '方法'],
+      ['consequence', '后果']
+    ],
+    reading: `
+      <p>Every engineering team faces the same <span class="key">trade-off</span>: move fast now, or build clean for later. When you rush to meet a <span class="key">deadline</span>, you might write code that's "good enough" but not great. That's called <span class="key">technical debt</span>.</p>
+      <p>Technical debt is like a loan. You borrow speed today, but you pay interest tomorrow — in the form of bugs, slow development, and frustrated engineers. A little debt is fine if you pay it back quickly. But if you keep borrowing without <span class="key">refactoring</span>, the interest grows. Eventually, adding a simple feature takes weeks instead of hours.</p>
+      <p>The best teams treat technical debt as a conscious decision, not an accident. They say: "We're taking on debt here because the <span class="key">deadline</span> matters. We'll <span class="key">refactor</span> this in two weeks." And then they actually do it. The worst teams pretend the debt doesn't exist — until the system becomes so fragile that nobody wants to touch it.</p>
+    `,
+    question: '作者用"贷款(loan)"来比喻技术债。根据文章，这个比喻的核心含义是什么？',
+    choices: [
+      'A) 技术债是坏事，永远不应该产生技术债',
+      'B) 技术债像贷款一样——可以借，但必须还，否则利息（bug/慢开发）会越来越重',
+      'C) 技术债只影响新员工',
+      'D) 最好的团队从没有技术债'
+    ],
+    answer: 1,
+    explain: '文章明确说 borrow speed today, pay interest tomorrow。核心不是"永远不借"而是"借了要还"——consciously decide and actually refactor。B 最准确。A 和 D 过于绝对（文章说了 a little debt is fine），C 完全无关。'
+  }
+];
+
+// ===== RENDER =====
+const app = document.getElementById('app');
+const cleared = new Set(G.cleared);
+
+function renderMap() {
+  const xpInLvl = G.xp % 100;
+  app.innerHTML = `
+    <div id="map">
+      <div class="player-bar">
+        <div class="avatar-icon">🧑‍💻</div>
+        <div class="stats">
+          <div class="name">Adventurer · Lv.${G.level}</div>
+          <div class="sub">${G.xp} Total XP · ${cleared.size}/5 关卡通关</div>
+          <div class="xp-bar-outer"><div class="xp-bar-inner" style="width:${xpInLvl}%"></div></div>
+        </div>
+        <div class="stat-cell"><div class="val">${cleared.size}</div><div class="lbl">通关</div></div>
+        <div class="stat-cell"><div class="val">${G.level}</div><div class="lbl">等级</div></div>
+      </div>
+
+      <div class="map-title">🗺 Chapter 1: The Tech Realm</div>
+      <div class="map-sub">顺序闯关，每通过一关解锁下一关。碰到生词看「词汇助手」。</div>
+
+      <div class="quest-path" id="questPath"></div>
+
+      <div style="margin-top:20px;text-align:center;font-size:12px;color:#444;">
+        ${cleared.size === 5 ? '🎉 巨龙被击败了！你是 English Quest 冠军。' : '碎片时间也能推图——选一关开始冒险吧。'}
+      </div>
+      ${cleared.size > 0 ? `<div style="margin-top:12px;text-align:center;"><button class="btn btn-map" onclick="resetAll()" style="font-size:11px;padding:5px 12px;">重置进度</button></div>` : ''}
+    </div>
+  `;
+
+  const path = document.getElementById('questPath');
+  LEVELS.forEach((lv, i) => {
+    const done = cleared.has(lv.id);
+    const locked = !done && i > 0 && !cleared.has(LEVELS[i-1].id);
+    const node = document.createElement('div');
+    node.className = `quest-node ${lv.difficulty === 'boss' ? 'boss' : ''} ${done ? 'completed' : ''} ${locked ? 'locked' : ''}`;
+    node.innerHTML = `
+      <div class="node-dot"></div>
+      <div class="quest-card">
+        <div class="q-title">${lv.difficulty === 'boss' ? '💀 ' : ''}Level ${lv.id}: ${lv.title}</div>
+        <div class="q-desc">${lv.flavor}</div>
+      </div>
+      <span class="quest-tag ${lv.difficulty === 'boss' ? 'tag-boss' : lv.difficulty === 'easy' ? 'tag-easy' : 'tag-medium'}">${lv.difficulty === 'boss' ? 'BOSS' : lv.difficulty.toUpperCase()}</span>
+      ${done ? '<span class="quest-done">✓</span>' : ''}
+    `;
+    if (!locked) node.onclick = () => startLevel(lv.id);
+    path.appendChild(node);
+  });
+}
+
+function startLevel(id) {
+  const lv = LEVELS.find(l => l.id === id);
+  if (!lv) return;
+  const done = cleared.has(lv.id);
+  const attempts = G.attempts[lv.id] || 0;
+
+  app.innerHTML = `
+    <div id="playScreen">
+      <div class="back-row">
+        <button class="back-btn" onclick="renderMap()">← 返回地图</button>
+        <span class="level-badge">Level ${lv.id} · ${lv.difficulty === 'boss' ? 'BOSS' : lv.difficulty.toUpperCase()} · +${lv.xp} XP</span>
+        ${done ? '<span style="color:var(--success);font-size:12px;">✅ 已通关</span>' : ''}
+        ${!done && attempts > 0 ? `<span style="color:#888;font-size:12px;">尝试次数: ${attempts}</span>` : ''}
+      </div>
+
+      <div class="quest-panel ${lv.difficulty === 'boss' ? 'boss-panel' : ''}">
+        <div class="q-header">${lv.difficulty === 'boss' ? '💀 ' : ''}${lv.title}</div>
+        <div class="q-flavor">${lv.flavor}</div>
+      </div>
+
+      <div class="vocab-box">
+        ${lv.vocab.map(v => `<div class="v-item"><span class="v-en">${v[0]}</span><span class="v-zh">${v[1]}</span></div>`).join('')}
+      </div>
+
+      <div class="read-card">
+        <div class="r-label">📖 阅读材料</div>
+        <div class="r-text">${lv.reading}</div>
+      </div>
+
+      <div class="challenge-box">
+        <div class="c-prompt">⚔ ${lv.question}</div>
+        ${lv.choices ? renderChoices(lv) : renderFills(lv)}
+        <button class="btn btn-go" id="submitBtn" disabled>确认提交</button>
+      </div>
+
+      <div id="resultArea"></div>
+    </div>
+  `;
+
+  if (!done) bindChallenge(lv);
+}
+
+function renderChoices(lv) {
+  return `<div class="choice-list">${lv.choices.map((c, i) => `<button class="choice-btn" data-idx="${i}">${c}</button>`).join('')}</div>`;
+}
+function renderFills(lv) {
+  return `<div>${lv.blanks.map((b, i) => `
+    <div class="fill-hint">空 ${i+1}: <span>${b.hint}</span></div>
+    <input class="fill-input" id="fill-${b.id}" placeholder="输入英文单词..." autocomplete="off">
+  `).join('')}</div>`;
+}
+
+function bindChallenge(lv) {
+  const submit = document.getElementById('submitBtn');
+  const resultArea = document.getElementById('resultArea');
+  if (!submit) return;
+
+  if (lv.choices) {
+    let picked = -1;
+    const btns = document.querySelectorAll('.choice-btn');
+    btns.forEach(b => {
+      b.addEventListener('click', () => {
+        btns.forEach(x => x.classList.remove('picked'));
+        b.classList.add('picked');
+        picked = parseInt(b.dataset.idx);
+        submit.disabled = false;
+      });
+    });
+    submit.addEventListener('click', () => {
+      const correct = picked === lv.answer;
+      btns.forEach((b, i) => {
+        b.disabled = true;
+        if (i === lv.answer) b.classList.add('right');
+        if (i === picked && !correct) b.classList.add('wrong');
+      });
+      submit.style.display = 'none';
+      showResult(lv, correct);
+    });
+  } else {
+    const inputs = lv.blanks.map(b => document.getElementById('fill-' + b.id));
+    inputs.forEach(inp => inp.addEventListener('input', () => {
+      submit.disabled = !inputs.every(x => x.value.trim().length > 0);
+    }));
+    submit.addEventListener('click', () => {
+      let allRight = true;
+      inputs.forEach((inp, i) => {
+        const answers = lv.blanks[i].answers;
+        const val = inp.value.trim().toLowerCase();
+        const ok = answers.some(a => a.toLowerCase() === val);
+        if (!ok) allRight = false;
+        inp.classList.add(ok ? 'correct' : 'wrong');
+        inp.disabled = true;
+      });
+      submit.style.display = 'none';
+      showResult(lv, allRight);
+    });
+  }
+}
+
+function showResult(lv, correct) {
+  const area = document.getElementById('resultArea');
+  if (!area) return;
+  G.attempts[lv.id] = (G.attempts[lv.id] || 0) + 1;
+  save();
+
+  if (correct) {
+    area.innerHTML = `
+      <div class="result-box win show">
+        <div class="r-title">🏆 通关！</div>
+        <div>${lv.explain}</div>
+        <div class="r-xp">+${lv.xp} XP</div>
+      </div>
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn btn-map" onclick="renderMap()">🗺 返回地图</button>
+        ${lv.id < 5 ? '<button class="btn btn-next" onclick="startLevel(' + (lv.id + 1) + ')">⚔ 进入下一关 →</button>' : '<button class="btn btn-next" onclick="renderMap()" style="background:var(--gold);">👑 全部通关！返回地图</button>'}
+      </div>
+    `;
+    if (!G.cleared.includes(lv.id)) {
+      G.cleared.push(lv.id);
+      G.xp += lv.xp;
+      const newLv = Math.floor(G.xp / 100) + 1;
+      if (newLv > G.level) { G.level = newLv; toast('⬆ 升级！Player Level ' + G.level, 'lvlup'); }
+      save();
+    }
+    toast('🏆 Level ' + lv.id + ' 通关！+' + lv.xp + ' XP', 'clear');
+  } else {
+    area.innerHTML = `
+      <div class="result-box lose show">
+        <div class="r-title">💪 差一点点！</div>
+        <div>${lv.explain}</div>
+        <div style="margin-top:8px;color:#aaa;">别担心，不扣 XP，可以重试。</div>
+      </div>
+      <div class="btn-row" style="margin-top:14px;">
+        <button class="btn btn-map" onclick="renderMap()">🗺 返回地图</button>
+        <button class="btn btn-retry" onclick="startLevel(${lv.id})">🔄 重新挑战</button>
+      </div>
+    `;
+  }
+}
+
+function resetAll() {
+  if (confirm('确定要重置所有进度吗？XP、等级、通关记录都会清零。')) { G = def(); save(); renderMap(); }
+}
+
+// ===== START =====
+renderMap();
+</script>
+</body>
+</html>
